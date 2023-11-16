@@ -6,8 +6,10 @@ public class CharacterController : MonoBehaviour
 {
     Rigidbody2D rb;
     [SerializeField] float speed, dirX, dirY;
-    [SerializeField] bool isGrounded, isMoving;
+    [SerializeField] bool isGrounded;
     SpriteRenderer sr;
+    Animator anim;
+    [SerializeField] GameObject interactableSign;
     private void OnCollisionEnter2D(Collision2D collision)
     {
         if(collision.gameObject.CompareTag("ground"))
@@ -15,11 +17,28 @@ public class CharacterController : MonoBehaviour
             isGrounded = true;
         }
     }
+
+    private void OnTriggerEnter2D(Collider2D collision)
+    {
+       if(collision.gameObject.TryGetComponent<IInteractable>(out var interactable))
+        {
+            interactableSign.gameObject.SetActive(true);
+        }
+    }
+
+    private void OnTriggerExit2D(Collider2D collision)
+    {
+        if(collision.gameObject.TryGetComponent<IInteractable>(out var interactable))
+        {
+            Debug.Log("Works");
+            interactableSign.gameObject.SetActive(false);
+        }
+    }
     void Start()
     {
         rb = GetComponent<Rigidbody2D>();
         sr = GetComponent<SpriteRenderer>();
-        isMoving = false;
+        anim = GetComponent<Animator>();
     }
 
     void Update()
@@ -31,11 +50,11 @@ public class CharacterController : MonoBehaviour
     {
         if(speed != 0)
         {
-            isMoving = true;
+            anim.SetBool("isMoving", true);
         }
         else
         {
-            isMoving = false;
+            anim.SetBool("isMoving", false);
         }
         if (Input.GetKeyDown(KeyCode.D))
         {
