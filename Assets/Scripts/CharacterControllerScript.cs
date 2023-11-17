@@ -237,6 +237,7 @@ public class CharacterController : MonoBehaviour
             }
              
             _rigidbody.velocity = new Vector2(speed * movementSpeed, _rigidbody.velocity.y);
+            Debug.Log(speed * movementSpeed);
 
         }
         else
