@@ -2,6 +2,8 @@ using System.Collections;
 using System.Collections.Generic;
 using Unity.Collections;
 using UnityEngine;
+using Cinemachine;
+using DG.Tweening;
 
 public class CharacterController : MonoBehaviour
 {
@@ -12,6 +14,8 @@ public class CharacterController : MonoBehaviour
     public bool isGrounded;
     SpriteRenderer _characterRenderer;
     Animator _playerAnimator;
+
+    [SerializeField] LineRenderer parabolaRenderer;
 
     GameObject hook;
 
@@ -88,6 +92,8 @@ public class CharacterController : MonoBehaviour
             {
                 if (Input.GetMouseButton(0))
                 {
+                    RenderParabola();
+
                     if (throwTimer > maxThrowTimer)
                     {
                         throwTimer = maxThrowTimer;
@@ -96,6 +102,7 @@ public class CharacterController : MonoBehaviour
                     {
                         throwTimer += Time.deltaTime;
                     }
+                    parabolaRenderer.enabled = true;
                 }
 
                 if (Input.GetMouseButtonUp(0))
@@ -105,7 +112,7 @@ public class CharacterController : MonoBehaviour
                         if (!canThrow)
                         {
                             canThrow = true;
-                            return;
+                            //return;
                         }
 
                         holdingMysteryObject = false;
@@ -114,6 +121,7 @@ public class CharacterController : MonoBehaviour
                         isGrounded = false;
                         Throw();
                         throwTimer = 0;
+                        parabolaRenderer.enabled = false;
                     }
                     else
                     {
@@ -127,35 +135,57 @@ public class CharacterController : MonoBehaviour
                 if(Input.GetMouseButtonDown(0) && canYeet)
                 {
                     canYeet = false;
-                    _rigidbody.velocity = (hook.transform.position - transform.position).normalized * yeetSpeed;
-                    StartCoroutine(ObjectReturnToHand());
+                    _rigidbody.velocity = (hook.transform.position - transform.position) * yeetSpeed;
+
+                    hook.GetComponent<Rigidbody2D>().isKinematic = true;
+                    hook.GetComponent<Collider2D>().enabled = false;
+
+                    StartCoroutine(HookGoToPlayer());
                 }
             }
         }
     }
 
-    private IEnumerator ObjectReturnToHand()
+    private void RenderParabola()
     {
-        var hookrb = hook.GetComponent<Rigidbody2D>();
-        hookrb.gravityScale = 0;
+        float pointSeperationTime = .2f;
 
-        while ((hook.transform.position - transform.position).magnitude < objectPickupRange)
+        Vector3 aimDirection = (Camera.main.ScreenToWorldPoint(Input.mousePosition) - new Vector3(_rigidbody.position.x, _rigidbody.position.y, 0)).normalized;
+        Vector3 finalVelocity = aimDirection * (throwSpeed * throwTimer / maxThrowTimer);
+
+        for (int i = 0; i < parabolaRenderer.positionCount; i++)
         {
-            Vector3 diff = (hook.transform.position - transform.position);
-            hookrb.velocity = objectReturnSpeed * (diff.normalized);
-            yield return new WaitForEndOfFrame();
+            float finalX = transform.position.x + finalVelocity.x * (pointSeperationTime * i);
+            float finalY = transform.position.y + (finalVelocity.y * (pointSeperationTime * i)) - (.5f * -Physics2D.gravity.y * 0.3f * (pointSeperationTime * i) * (pointSeperationTime * i));
+            parabolaRenderer.SetPosition(i, new Vector3(finalX, finalY, 0));
         }
-
-        holdingMysteryObject = true;
-        Destroy(hook.gameObject);
     }
 
     private void Throw()
     {
         hook = Instantiate(_mysteryObjectPrefab, transform.position, Quaternion.identity);
+        Rigidbody2D hookrb =  hook.GetComponent<Rigidbody2D>();
         Vector3 aimDirection = (Camera.main.ScreenToWorldPoint(Input.mousePosition) - new Vector3(_rigidbody.position.x, _rigidbody.position.y, 0)).normalized;
-        hook.GetComponent<Rigidbody2D>().velocity = aimDirection * (throwSpeed * throwTimer / maxThrowTimer);
+        Vector3 finalVelocity = aimDirection * (throwSpeed * throwTimer / maxThrowTimer);
+        hookrb.velocity = finalVelocity;
     }
+
+    private IEnumerator HookGoToPlayer()
+    {
+        var hookRb = hook.GetComponent<Rigidbody2D>();
+        do
+        {
+            hookRb.velocity = -(hook.transform.position - transform.position).normalized * objectReturnSpeed;
+            yield return new WaitForEndOfFrame();
+        }
+        while ((hook.transform.position - transform.position).magnitude > .1f);
+
+        holdingMysteryObject = true;
+        Destroy(hook.gameObject);
+    }
+
+
+
 
     void Update()
     {
