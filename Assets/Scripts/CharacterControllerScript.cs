@@ -9,6 +9,7 @@ public class CharacterController : MonoBehaviour
 {
     Rigidbody2D _rigidbody;
     private float speed;
+    IInteractable contactingInteractable;
 
     [ReadOnly]
     public bool isGrounded;
@@ -20,6 +21,7 @@ public class CharacterController : MonoBehaviour
     GameObject hook;
 
     [SerializeField] float movementSpeed = 15f;
+    [SerializeField] float airStrafeSpeed = 8f;
     [SerializeField] float jumpSpeed = 50f;
 
     // Throwing References
@@ -36,9 +38,9 @@ public class CharacterController : MonoBehaviour
 
     [Space(15)]
     [ReadOnly]
-    public bool hasMysteryObject = true;
+    public bool hasMysteryObject = false;
     [ReadOnly]
-    public bool holdingMysteryObject = true;
+    public bool holdingMysteryObject = false;
     [ReadOnly]
     public bool canYeet = false;
     [ReadOnly]
@@ -66,6 +68,7 @@ public class CharacterController : MonoBehaviour
        if(collision.gameObject.TryGetComponent<IInteractable>(out var interactable))
        {
             // notify you can interact with it or not
+            contactingInteractable = interactable;
        }
     }
 
@@ -75,6 +78,11 @@ public class CharacterController : MonoBehaviour
         {
             Debug.Log("Works");
             // if player leaves this interactable, disable the head's up popup.
+            if (interactable == contactingInteractable)
+            {
+                contactingInteractable = null;
+            }
+            interactable.OnTriggerExit();
         }
     }
     void Start()
@@ -182,6 +190,8 @@ public class CharacterController : MonoBehaviour
         while ((hook.transform.position - transform.position).magnitude > .1f);
 
         holdingMysteryObject = true;
+        canThrow = true;
+
         Destroy(hook.gameObject);
     }
 
@@ -191,8 +201,24 @@ public class CharacterController : MonoBehaviour
     void Update()
     {
         HandleAnimations();
-        HandlePlayerMovement();
         HandleThrowing();
+        HandleInteractions();
+    }
+
+    private void FixedUpdate()
+    {
+        HandlePlayerMovement();
+    }
+
+    void HandleInteractions()
+    {
+        if (Input.GetKeyDown(KeyCode.E))
+        {
+            if (contactingInteractable != null)
+            {
+                contactingInteractable.interact();
+            }
+        }
     }
 
     void HandleAnimations()
@@ -236,14 +262,15 @@ public class CharacterController : MonoBehaviour
                 speed = 0;
             }
 
-            if ((Input.GetKeyDown(KeyCode.W)))
+            if ((Input.GetKey(KeyCode.W)))
             {
                 _rigidbody.velocity = new Vector2(_rigidbody.velocity.x, jumpSpeed);
                 _playerAnimator.SetTrigger("jump");
+                Debug.Log("jump");
+                //_playerAnimator.ResetTrigger("jump");
             }
              
             _rigidbody.velocity = new Vector2(speed * movementSpeed, _rigidbody.velocity.y);
-            Debug.Log(speed * movementSpeed);
 
         }
         else
@@ -260,12 +287,7 @@ public class CharacterController : MonoBehaviour
                 speed = -1;
             }
 
-
-
-            if (speed != 0)
-            {
-                _rigidbody.velocity = new Vector2(speed * movementSpeed, _rigidbody.velocity.y);
-            }
+            _rigidbody.velocity += new Vector2(airStrafeSpeed * speed, 0);
         }
 
     }
