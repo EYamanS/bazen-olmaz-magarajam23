@@ -1,17 +1,46 @@
 using System.Collections;
 using System.Collections.Generic;
+using Unity.Collections;
 using UnityEngine;
 
 public class CharacterController : MonoBehaviour
 {
-    Rigidbody2D rb;
-    [SerializeField] float speed, dirX, dirY, hookMultiplierX, hookMultiplierY;
-    [SerializeField] bool isGrounded;
-    SpriteRenderer sr;
-    Animator anim;
-    [SerializeField] GameObject interactableSign, _hook;
-    [SerializeField] float timer = 0;
-    float garagara;
+    Rigidbody2D _rigidbody;
+    private float speed;
+
+    [ReadOnly]
+    public bool isGrounded;
+    SpriteRenderer _characterRenderer;
+    Animator _playerAnimator;
+
+    GameObject hook;
+
+    [SerializeField] float movementSpeed = 15f;
+    [SerializeField] float jumpSpeed = 50f;
+
+    // Throwing References
+    [SerializeField] GameObject _mysteryObjectPrefab;
+    [SerializeField] private float maxThrowTimer = 3f;
+    [SerializeField] private float minThrowTimer = 1f;
+    [SerializeField] private float objectReturnSpeed = .2f;
+    [SerializeField] private float throwSpeed = 5f;
+    [SerializeField] private float objectPickupRange = .05f;
+    [Space(10)]
+    [SerializeField] private float yeetSpeed = 5f;
+
+    private float throwTimer = 0;
+
+    [Space(15)]
+    [ReadOnly]
+    public bool hasMysteryObject = true;
+    [ReadOnly]
+    public bool holdingMysteryObject = true;
+    [ReadOnly]
+    public bool canYeet = false;
+    [ReadOnly]
+    public bool canThrow = true;
+
+
     private void OnCollisionEnter2D(Collision2D collision)
     {
         if(collision.gameObject.CompareTag("ground"))
@@ -20,12 +49,20 @@ public class CharacterController : MonoBehaviour
         }
     }
 
+    private void OnCollisionExit2D(Collision2D collision)
+    {
+        if (collision.gameObject.CompareTag("ground"))
+        {
+            isGrounded = false;
+        }
+    }
+
     private void OnTriggerEnter2D(Collider2D collision)
     {
        if(collision.gameObject.TryGetComponent<IInteractable>(out var interactable))
-        {
-            interactableSign.gameObject.SetActive(true);
-        }
+       {
+            // notify you can interact with it or not
+       }
     }
 
     private void OnTriggerExit2D(Collider2D collision)
@@ -33,77 +70,166 @@ public class CharacterController : MonoBehaviour
         if(collision.gameObject.TryGetComponent<IInteractable>(out var interactable))
         {
             Debug.Log("Works");
-            interactableSign.gameObject.SetActive(false);
+            // if player leaves this interactable, disable the head's up popup.
         }
     }
     void Start()
     {
-        rb = GetComponent<Rigidbody2D>();
-        sr = GetComponent<SpriteRenderer>();
-        anim = GetComponent<Animator>();
+        _rigidbody = GetComponent<Rigidbody2D>();
+        _characterRenderer = GetComponent<SpriteRenderer>();
+        _playerAnimator = GetComponent<Animator>();
+    }
+
+    private void HandleThrowing()
+    {
+        if (hasMysteryObject)
+        {
+            if (holdingMysteryObject)
+            {
+                if (Input.GetMouseButton(0))
+                {
+                    if (throwTimer > maxThrowTimer)
+                    {
+                        throwTimer = maxThrowTimer;
+                    }
+                    else
+                    {
+                        throwTimer += Time.deltaTime;
+                    }
+                }
+
+                if (Input.GetMouseButtonUp(0))
+                {
+                    if (throwTimer > minThrowTimer)
+                    {
+                        if (!canThrow)
+                        {
+                            canThrow = true;
+                            return;
+                        }
+
+                        holdingMysteryObject = false;
+                        canYeet = true;
+                        canThrow = false;
+                        isGrounded = false;
+                        Throw();
+                        throwTimer = 0;
+                    }
+                    else
+                    {
+                        throwTimer = 0;
+                        canThrow = true;
+                    }
+                }
+            }
+            else
+            {
+                if(Input.GetMouseButtonDown(0) && canYeet)
+                {
+                    canYeet = false;
+                    _rigidbody.velocity = (hook.transform.position - transform.position).normalized * yeetSpeed;
+                    StartCoroutine(ObjectReturnToHand());
+                }
+            }
+        }
+    }
+
+    private IEnumerator ObjectReturnToHand()
+    {
+        var hookrb = hook.GetComponent<Rigidbody2D>();
+        hookrb.gravityScale = 0;
+
+        while ((hook.transform.position - transform.position).magnitude < objectPickupRange)
+        {
+            Vector3 diff = (hook.transform.position - transform.position);
+            hookrb.velocity = objectReturnSpeed * (diff.normalized);
+            yield return new WaitForEndOfFrame();
+        }
+
+        holdingMysteryObject = true;
+        Destroy(hook.gameObject);
+    }
+
+    private void Throw()
+    {
+        hook = Instantiate(_mysteryObjectPrefab, transform.position, Quaternion.identity);
+        Vector3 aimDirection = (Camera.main.ScreenToWorldPoint(Input.mousePosition) - new Vector3(_rigidbody.position.x, _rigidbody.position.y, 0)).normalized;
+        hook.GetComponent<Rigidbody2D>().velocity = aimDirection * (throwSpeed * throwTimer / maxThrowTimer);
     }
 
     void Update()
     {
-        playerMovement();
-        if(Input.GetMouseButton(0))
-        {
-                if (timer < 1.5f)
-                {
-                    timer += Time.deltaTime;
-                }
-                else
-                {
-                    timer = 1.5f;
-                }
-        }
-        if(Input.GetMouseButtonUp(0))
-        {
-            hookMultiplierX = timer*2;
-            hookMultiplierY = timer*2;
-            timer = 0;
-            if (sr.flipX) { garagara = -0.5f; } else { garagara = 0.5f; }
-            Vector2 transformPos = new Vector2(rb.transform.position.x + garagara, rb.transform.position.y);
-            GameObject hook = Instantiate(_hook, transformPos, Quaternion.identity);
-            hook.GetComponent<Rigidbody2D>().velocity = new Vector2(hookMultiplierX * (Camera.main.ScreenToWorldPoint(Input.mousePosition).x - rb.position.x), hookMultiplierY * (Camera.main.ScreenToWorldPoint(Input.mousePosition).y - rb.position.y));
-        }
+        HandlePlayerMovement();
+        HandleThrowing();
+        HandleAnimations();
     }
 
-    void playerMovement()
+    void HandleAnimations()
     {
-        if(speed != 0)
+        if (speed != 0)
         {
-            anim.SetBool("isMoving", true);
+            _playerAnimator.SetBool("isMoving", true);
         }
         else
         {
-            anim.SetBool("isMoving", false);
-        }
-        if (Input.GetKeyDown(KeyCode.D))
-        {
-            speed = dirX;
-        }
-        if (Input.GetKeyDown(KeyCode.A))
-        {
-            speed = -dirX;
-        }
-        if ((Input.GetKeyUp(KeyCode.D) || Input.GetKeyUp(KeyCode.A)))
-        {
-            speed = 0;
-        }
-        if (Input.GetKeyDown(KeyCode.W) && isGrounded)
-        {
-            rb.velocity = new Vector2(rb.velocity.x, dirY);
-            isGrounded = false;
+            _playerAnimator.SetBool("isMoving", false);
         }
         if (speed < 0)
         {
-            sr.flipX = true;
+            _characterRenderer.flipX = true;
         }
         else if (speed > 0)
         {
-            sr.flipX = false;
+            _characterRenderer.flipX = false;
         }
-        rb.velocity = new Vector2(speed, rb.velocity.y);
+    }
+
+    void HandlePlayerMovement()
+    {
+        if (isGrounded)
+        {
+            if (Input.GetKey(KeyCode.D))
+            {
+                speed = 1;
+            }
+            else if (Input.GetKey(KeyCode.A))
+            {
+                speed = -1;
+            }
+            else
+            {
+                speed = 0;
+            }
+
+            if ((Input.GetKeyDown(KeyCode.W)))
+            {
+                _rigidbody.velocity = new Vector2(_rigidbody.velocity.x, jumpSpeed);
+            }
+             
+            _rigidbody.velocity = new Vector2(speed * movementSpeed, _rigidbody.velocity.y);
+
+        }
+        else
+        {
+            // no control
+            speed = 0;
+
+            if (Input.GetKey(KeyCode.D))
+            {
+                speed = 1;
+            }
+            else if (Input.GetKey(KeyCode.A))
+            {
+                speed = -1;
+            }
+
+
+
+            if (speed != 0)
+            {
+                _rigidbody.velocity = new Vector2(speed * movementSpeed, _rigidbody.velocity.y);
+            }
+        }
+
     }
 }
