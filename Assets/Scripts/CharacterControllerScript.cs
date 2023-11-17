@@ -168,6 +168,7 @@ public class CharacterController : MonoBehaviour
         Vector3 aimDirection = (Camera.main.ScreenToWorldPoint(Input.mousePosition) - new Vector3(_rigidbody.position.x, _rigidbody.position.y, 0)).normalized;
         Vector3 finalVelocity = aimDirection * (throwSpeed * throwTimer / maxThrowTimer);
         hookrb.velocity = finalVelocity;
+
     }
 
     private IEnumerator HookGoToPlayer()
@@ -189,9 +190,9 @@ public class CharacterController : MonoBehaviour
 
     void Update()
     {
+        HandleAnimations();
         HandlePlayerMovement();
         HandleThrowing();
-        HandleAnimations();
     }
 
     void HandleAnimations()
@@ -212,6 +213,9 @@ public class CharacterController : MonoBehaviour
         {
             _characterRenderer.flipX = false;
         }
+
+        _playerAnimator.SetBool("grounded", isGrounded);
+        _playerAnimator.SetFloat("yVel", _rigidbody.velocity.y);
     }
 
     void HandlePlayerMovement()
@@ -226,7 +230,8 @@ public class CharacterController : MonoBehaviour
             {
                 speed = -1;
             }
-            else
+
+            if (isGrounded && !Input.GetKey(KeyCode.A) && !Input.GetKey(KeyCode.D))
             {
                 speed = 0;
             }
@@ -234,6 +239,7 @@ public class CharacterController : MonoBehaviour
             if ((Input.GetKeyDown(KeyCode.W)))
             {
                 _rigidbody.velocity = new Vector2(_rigidbody.velocity.x, jumpSpeed);
+                _playerAnimator.SetTrigger("jump");
             }
              
             _rigidbody.velocity = new Vector2(speed * movementSpeed, _rigidbody.velocity.y);
