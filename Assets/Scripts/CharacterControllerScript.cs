@@ -5,11 +5,13 @@ using UnityEngine;
 public class CharacterController : MonoBehaviour
 {
     Rigidbody2D rb;
-    [SerializeField] float speed, dirX, dirY;
+    [SerializeField] float speed, dirX, dirY, hookMultiplierX, hookMultiplierY;
     [SerializeField] bool isGrounded;
     SpriteRenderer sr;
     Animator anim;
-    [SerializeField] GameObject interactableSign;
+    [SerializeField] GameObject interactableSign, _hook;
+    [SerializeField] float timer = 0;
+    float garagara;
     private void OnCollisionEnter2D(Collision2D collision)
     {
         if(collision.gameObject.CompareTag("ground"))
@@ -44,6 +46,27 @@ public class CharacterController : MonoBehaviour
     void Update()
     {
         playerMovement();
+        if(Input.GetMouseButton(0))
+        {
+                if (timer < 1.5f)
+                {
+                    timer += Time.deltaTime;
+                }
+                else
+                {
+                    timer = 1.5f;
+                }
+        }
+        if(Input.GetMouseButtonUp(0))
+        {
+            hookMultiplierX = timer*2;
+            hookMultiplierY = timer*2;
+            timer = 0;
+            if (sr.flipX) { garagara = -0.5f; } else { garagara = 0.5f; }
+            Vector2 transformPos = new Vector2(rb.transform.position.x + garagara, rb.transform.position.y);
+            GameObject hook = Instantiate(_hook, transformPos, Quaternion.identity);
+            hook.GetComponent<Rigidbody2D>().velocity = new Vector2(hookMultiplierX * (Camera.main.ScreenToWorldPoint(Input.mousePosition).x - rb.position.x), hookMultiplierY * (Camera.main.ScreenToWorldPoint(Input.mousePosition).y - rb.position.y));
+        }
     }
 
     void playerMovement()
