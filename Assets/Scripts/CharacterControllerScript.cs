@@ -44,11 +44,8 @@ public class CharacterController : MonoBehaviour
     void Update()
     {
         playerMovement();
-    }
 
-    void playerMovement()
-    {
-        if(speed != 0)
+        if (speed != 0)
         {
             anim.SetBool("isMoving", true);
         }
@@ -56,23 +53,7 @@ public class CharacterController : MonoBehaviour
         {
             anim.SetBool("isMoving", false);
         }
-        if (Input.GetKeyDown(KeyCode.D))
-        {
-            speed = dirX;
-        }
-        if (Input.GetKeyDown(KeyCode.A))
-        {
-            speed = -dirX;
-        }
-        if ((Input.GetKeyUp(KeyCode.D) || Input.GetKeyUp(KeyCode.A)))
-        {
-            speed = 0;
-        }
-        if (Input.GetKeyDown(KeyCode.W) && isGrounded)
-        {
-            rb.velocity = new Vector2(rb.velocity.x, dirY);
-            isGrounded = false;
-        }
+
         if (speed < 0)
         {
             sr.flipX = true;
@@ -81,6 +62,30 @@ public class CharacterController : MonoBehaviour
         {
             sr.flipX = false;
         }
+    }
+
+    void playerMovement()
+    {
+
+        if (Input.GetKey(KeyCode.D))
+        {
+            speed = dirX;
+        }
+        else if (Input.GetKey(KeyCode.A))
+        {
+            speed = -dirX;
+        }
+        else
+        {
+            speed = 0;
+        }
+
+        if (Input.GetKeyDown(KeyCode.W) && isGrounded)
+        {
+            rb.velocity = new Vector2(rb.velocity.x, dirY);
+            isGrounded = false;
+        }
+
         rb.velocity = new Vector2(speed, rb.velocity.y);
     }
 }
