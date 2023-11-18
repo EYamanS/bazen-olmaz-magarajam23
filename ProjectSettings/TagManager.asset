@@ -3,7 +3,10 @@
 --- !u!78 &1
 TagManager:
   serializedVersion: 2
-  tags: []
+  tags:
+  - ground
+  - interactable
+  - nextscene
   layers:
   - Default
   - TransparentFX
@@ -11,11 +14,11 @@ TagManager:
   - 
   - Water
   - UI
-  - 
-  - 
-  - 
-  - 
-  - 
+  - Cover
+  - Player
+  - Enemy
+  - Hook
+  - Ground
   - 
   - 
   - 
@@ -38,6 +41,12 @@ TagManager:
   - 
   - 
   m_SortingLayers:
+  - name: BG
+    uniqueID: 292221849
+    locked: 0
   - name: Default
     uniqueID: 0
+    locked: 0
+  - name: Plat
+    uniqueID: 3402476997
     locked: 0
