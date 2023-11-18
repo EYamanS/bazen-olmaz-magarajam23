@@ -47,4 +47,12 @@ public class ParkourTrigger : MonoBehaviour
             CharacterController.Instance.canMove = true;
         });
     }
+
+    private void OnCollisionEnter2D(Collision2D collision)
+    {
+        if (collision.gameObject.TryGetComponent<CharacterController>(out var ctrl))
+        {
+
+        }
+    }
 }

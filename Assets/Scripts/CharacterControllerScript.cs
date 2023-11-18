@@ -349,12 +349,10 @@ public class CharacterController : SingletonComponent<CharacterController>
             {
                 _rigidbody.velocity = new Vector2(_rigidbody.velocity.x, jumpSpeed);
                 _playerAnimator.SetTrigger("jump");
-                Debug.Log("jump");
                 //_playerAnimator.ResetTrigger("jump");
             }
              
             _rigidbody.velocity = new Vector2(speed * movementSpeed, _rigidbody.velocity.y);
-            Debug.Log(speed * movementSpeed);
 
         }
         else

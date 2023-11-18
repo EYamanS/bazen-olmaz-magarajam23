@@ -8,7 +8,8 @@ using UnityEditor.VersionControl;
 
 public class OpenAITest : MonoBehaviour
 {
-    string apiKey = "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";
+    private string apiKey = "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";
+    public string assistantToTalk;
 
     [Button]
     public void ClearVals()
@@ -34,7 +35,6 @@ public class OpenAITest : MonoBehaviour
     [ReadOnly]
     public string lastMessageId;
 
-    
     [Button("Send Message")]
     public void SendDialog(string message)
     {
@@ -146,7 +146,7 @@ public class OpenAITest : MonoBehaviour
 
         // Create a dictionary to represent the JSON structure
         Dictionary<string, object> jsonDict = new Dictionary<string, object>();
-        jsonDict.Add("assistant_id", "asst_YWUZm5Ku2RdGVfPQHdAEGtOY");
+        jsonDict.Add("assistant_id", assistantToTalk);
 
 
         var jsonStr = JsonConvert.SerializeObject(jsonDict);
@@ -258,7 +258,6 @@ public class OpenAITest : MonoBehaviour
                 yield return new WaitForSeconds(.5f);
                 yield return RetrieveRunStep();
             }
-            
         }
     }
     private IEnumerator GetLastMessage()
@@ -312,7 +311,6 @@ public struct Message
 {
     public string role;
     public string content;
-
     public Message(string content)
     {
         this.role = "user";
