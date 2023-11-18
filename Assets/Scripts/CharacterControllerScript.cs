@@ -11,12 +11,16 @@ public class CharacterController : MonoBehaviour
     private float speed;
     IInteractable contactingInteractable;
 
+    [SerializeField] LayerMask groundLayerMask;
+
     [ReadOnly]
     public bool isGrounded;
     SpriteRenderer _characterRenderer;
     Animator _playerAnimator;
 
+    [SerializeField] SpriteRenderer interactionObjectRenderer;
     [SerializeField] LineRenderer parabolaRenderer;
+    [SerializeField] AudioClip yeetSound;
 
     GameObject hook;
 
@@ -36,16 +40,14 @@ public class CharacterController : MonoBehaviour
     [SerializeField] public float throwTimer = 0;
 
     [Space(15)]
-    [ReadOnly]
+
     public bool hasMysteryObject = false;
-    [ReadOnly]
     public bool holdingMysteryObject = false;
-    [ReadOnly]
     public bool canYeet = false;
-    [ReadOnly]
     public bool canThrow = true;
 
-
+    public void ClearSpeed() => _rigidbody.velocity = Vector2.zero;
+    
     private void OnCollisionEnter2D(Collision2D collision)
     {
         if(collision.gameObject.CompareTag("ground"))
@@ -62,12 +64,23 @@ public class CharacterController : MonoBehaviour
         }
     }
 
+
+    private void OnCollisionStay2D(Collision2D collision)
+    {
+        if (collision.gameObject.CompareTag("ground"))
+        {
+            isGrounded = true;
+        }
+    }
+
+
     private void OnTriggerEnter2D(Collider2D collision)
     {
        if(collision.gameObject.TryGetComponent<IInteractable>(out var interactable))
        {
             // notify you can interact with it or not
             contactingInteractable = interactable;
+            interactionObjectRenderer.enabled = true;
        }
     }
 
@@ -75,11 +88,11 @@ public class CharacterController : MonoBehaviour
     {
         if(collision.gameObject.TryGetComponent<IInteractable>(out var interactable))
         {
-            Debug.Log("Works");
             // if player leaves this interactable, disable the head's up popup.
             if (interactable == contactingInteractable)
             {
                 contactingInteractable = null;
+                interactionObjectRenderer.enabled = false;
             }
             interactable.OnTriggerExit();
         }
@@ -142,6 +155,9 @@ public class CharacterController : MonoBehaviour
                 if(Input.GetMouseButtonDown(0) && canYeet)
                 {
                     canYeet = false;
+
+                    if (yeetSound) AudioSource.PlayClipAtPoint(yeetSound, transform.position);
+
                     _rigidbody.velocity = (hook.transform.position - transform.position) * yeetSpeed;
 
                     hook.GetComponent<Rigidbody2D>().isKinematic = true;
@@ -202,7 +218,24 @@ public class CharacterController : MonoBehaviour
         HandleAnimations();
         HandleThrowing();
         HandleInteractions();
+        //CheckGrounded();
     }
+
+    /*
+    private void CheckGrounded()
+    {
+        RaycastHit2D hit = Physics2D.Raycast(transform.position, Vector2.down, .5f, groundLayerMask);
+
+        if (hit.collider != null)
+        {
+            isGrounded = true;
+        }
+        else
+        {
+            isGrounded = false;
+        }
+    }
+    */
 
     private void FixedUpdate()
     {
@@ -270,6 +303,7 @@ public class CharacterController : MonoBehaviour
             }
              
             _rigidbody.velocity = new Vector2(speed * movementSpeed, _rigidbody.velocity.y);
+            Debug.Log(speed * movementSpeed);
 
         }
         else
