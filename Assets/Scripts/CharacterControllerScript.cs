@@ -4,7 +4,7 @@ using Unity.Collections;
 using UnityEngine;
 using Cinemachine;
 using DG.Tweening;
-
+using UnityEngine.SceneManagement;
 public class CharacterController : MonoBehaviour
 {
     Rigidbody2D _rigidbody;
@@ -33,8 +33,7 @@ public class CharacterController : MonoBehaviour
     [SerializeField] private float objectPickupRange = .05f;
     [Space(10)]
     [SerializeField] private float yeetSpeed = 5f;
-
-    private float throwTimer = 0;
+    [SerializeField] public float throwTimer = 0;
 
     [Space(15)]
     [ReadOnly]

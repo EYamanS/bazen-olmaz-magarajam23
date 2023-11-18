@@ -6,6 +6,7 @@ TagManager:
   tags:
   - ground
   - interactable
+  - nextscene
   layers:
   - Default
   - TransparentFX
