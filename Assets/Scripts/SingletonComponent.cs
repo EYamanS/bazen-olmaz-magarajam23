@@ -10,15 +10,12 @@ public class SingletonComponent<T> : MonoBehaviour where T : MonoBehaviour
     {
         get
         {
-            if (_instance == null)
-            {
-                _instance = FindObjectOfType<T>(true);
+             _instance = FindObjectOfType<T>(true);
 
                 if (_instance == null)
                 {
                     Debug.LogError($"No instance of {typeof(T)} found.");
                 }
-            }
             return _instance;
         }
     }
@@ -28,7 +25,7 @@ public class SingletonComponent<T> : MonoBehaviour where T : MonoBehaviour
         if (_instance == null)
         {
             _instance = this as T;
-            DontDestroyOnLoad(gameObject);
+            //DontDestroyOnLoad(gameObject);
         }
     }
 }

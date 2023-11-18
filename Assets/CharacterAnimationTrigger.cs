@@ -9,6 +9,8 @@ public class WalkingSoundManager : MonoBehaviour
 
     [SerializeField]
     WalkMaterialSoundPair[] soundPairs;
+
+
     [SerializeField] LayerMask groundLayerMask;
 
     PhysicsMaterial2D steppingOnMaterial;
@@ -41,6 +43,8 @@ public class WalkingSoundManager : MonoBehaviour
 
     public void WalkStep()
     {
+        if (relevantClips == null) relevantClips = soundPairs[0].walkClips;
+
         _source.clip = relevantClips[lastClipIndex % relevantClips.Length];
         _source.PlayOneShot(_source.clip);
         lastClipIndex++;

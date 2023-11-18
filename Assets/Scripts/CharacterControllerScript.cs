@@ -5,7 +5,7 @@ using UnityEngine;
 using Cinemachine;
 using DG.Tweening;
 using UnityEngine.SceneManagement;
-public class CharacterController : MonoBehaviour
+public class CharacterController : SingletonComponent<CharacterController>
 {
     Rigidbody2D _rigidbody;
     private float speed;
@@ -37,6 +37,7 @@ public class CharacterController : MonoBehaviour
     [SerializeField] private float objectPickupRange = .05f;
     [Space(10)]
     [SerializeField] private float yeetSpeed = 5f;
+    [SerializeField] private float maxYeetVelocity = 50f;
     [SerializeField] public float throwTimer = 0;
 
     [Space(15)]
@@ -45,6 +46,7 @@ public class CharacterController : MonoBehaviour
     public bool holdingMysteryObject = false;
     public bool canYeet = false;
     public bool canThrow = true;
+    public bool canMove = true;
 
     public void ClearSpeed() => _rigidbody.velocity = Vector2.zero;
     
@@ -101,6 +103,16 @@ public class CharacterController : MonoBehaviour
         {
             finish.FinishSection();
         }
+
+
+        if (collision.gameObject.TryGetComponent<ParkourTrigger>(out var trg))
+        {
+            hasMysteryObject = true;
+            holdingMysteryObject = true;
+            jumpSpeed = 20;
+
+            trg.SwitchCamera(true);
+        }
     }
 
     private void OnTriggerExit2D(Collider2D collision)
@@ -114,6 +126,16 @@ public class CharacterController : MonoBehaviour
                 interactionObjectRenderer.enabled = false;
             }
             interactable.OnTriggerExit();
+        }
+
+
+        if (collision.gameObject.TryGetComponent<ParkourTrigger>(out var trg))
+        {
+            hasMysteryObject = false;
+            holdingMysteryObject = false;
+            jumpSpeed = 6;
+
+            trg.SwitchCamera(false);
         }
     }
     void Start()
@@ -157,7 +179,7 @@ public class CharacterController : MonoBehaviour
                         holdingMysteryObject = false;
                         canYeet = true;
                         canThrow = false;
-                        isGrounded = false;
+                        //isGrounded = false;
                         Throw();
                         throwTimer = 0;
                         parabolaRenderer.enabled = false;
@@ -174,14 +196,21 @@ public class CharacterController : MonoBehaviour
                 if(Input.GetMouseButtonDown(0) && canYeet)
                 {
                     canYeet = false;
+                    isGrounded = false;
+                    _playerAnimator.SetTrigger("jump");
+//                    _rigidbody.velocity = new Vector2(_rigidbody.velocity.x, 2);
+
 
                     if (yeetSound) AudioSource.PlayClipAtPoint(yeetSound, transform.position);
 
-                    _rigidbody.velocity = (hook.transform.position - transform.position) * yeetSpeed;
+                    var calcSpeed = (hook.transform.position - transform.position) * yeetSpeed;
+                    transform.position += Vector3.up * .1f;
+                    _rigidbody.velocity =  (maxYeetVelocity > calcSpeed.magnitude) ? calcSpeed : (maxYeetVelocity * calcSpeed.normalized);
+
+                    
 
                     hook.GetComponent<Rigidbody2D>().isKinematic = true;
                     hook.GetComponent<Collider2D>().enabled = false;
-
                     StartCoroutine(HookGoToPlayer());
                 }
             }
@@ -298,6 +327,8 @@ public class CharacterController : MonoBehaviour
 
     void HandlePlayerMovement()
     {
+        if (!canMove) return;
+
         if (isGrounded)
         {
             if (Input.GetKey(KeyCode.D))
@@ -340,6 +371,7 @@ public class CharacterController : MonoBehaviour
                 speed = -1;
             }
 
+            
             _rigidbody.velocity += new Vector2(airStrafeSpeed * speed, 0);
         }
 

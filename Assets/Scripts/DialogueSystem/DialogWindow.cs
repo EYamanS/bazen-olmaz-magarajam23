@@ -4,8 +4,6 @@ using System.Linq;
 using DG.Tweening;
 using TMPro;
 using UnityEngine;
-using UnityEngine.SceneManagement;
-using DG.Tweening;
 
 public class DialogWindow : SingletonComponent<DialogWindow>
 {
@@ -42,16 +40,15 @@ public class DialogWindow : SingletonComponent<DialogWindow>
 
     public void AdvanceDialogue(bool withEnterKey = false)
     {
+        
         if (DialogueObjects[0].DoClose())
         {
             gameObject.SetActive(false);    
         }
+        
 
         if (!withEnterKey)
         {
-            if (DialogueObjects[0] is InputTakerDialogue)
-                return;
-
             if (DialogueObjects[0].CanSkip())
             {
                 SkipDialogue();
@@ -65,6 +62,7 @@ public class DialogWindow : SingletonComponent<DialogWindow>
             }
         }
     }
+
 
     private void SkipDialogue()
     {

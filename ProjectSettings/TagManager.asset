@@ -41,6 +41,12 @@ TagManager:
   - 
   - 
   m_SortingLayers:
+  - name: BG
+    uniqueID: 292221849
+    locked: 0
   - name: Default
     uniqueID: 0
+    locked: 0
+  - name: Plat
+    uniqueID: 3402476997
     locked: 0

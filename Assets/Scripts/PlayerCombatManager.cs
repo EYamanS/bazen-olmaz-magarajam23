@@ -2,7 +2,7 @@ using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
 
-public class PlayerCombatManager : MonoBehaviour
+public class PlayerCombatManager : SingletonComponent<PlayerCombatManager>
 {
     [SerializeField] float coverSpeed;
     [SerializeField] float coverDistanceSensivitiy = .5f;
@@ -29,8 +29,9 @@ public class PlayerCombatManager : MonoBehaviour
     private CharacterController _characterController;
     private Rigidbody2D _rigidbody;
 
-    private void Awake()
+    protected override void Awake()
     {
+        base.Awake();
         _characterController = GetComponent<CharacterController>();
         _rigidbody = GetComponent<Rigidbody2D>();
     }

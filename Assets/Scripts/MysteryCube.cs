@@ -10,6 +10,7 @@ public class MysteryCube : SingletonComponent<MysteryCube>, IInteractable
 
     private PlayerCombatManager targetPlayer;
     private Rigidbody2D _rb;
+    private Collider2D coll;
 
     [SerializeField] float moveSpeed = 4f;
     [SerializeField] float maxSwayDist = 5f;
@@ -19,12 +20,19 @@ public class MysteryCube : SingletonComponent<MysteryCube>, IInteractable
         base.Awake();
         targetPlayer = FindObjectOfType<PlayerCombatManager>();
         _rb = GetComponent<Rigidbody2D>();
+        coll = GetComponent<Collider2D>();
         moveTarget = targetPlayer.transform.position;
+    }
+
+    public void SetInteractibility(bool val)
+    {
+        coll.enabled = val;
     }
 
     public void interact()
     {
         if (!gameObject.activeSelf) return;
+        Debug.Log("Interacted with mysterycube");
 
         if (!DialogWindow.Instance.gameObject.activeSelf)
         {
@@ -33,6 +41,7 @@ public class MysteryCube : SingletonComponent<MysteryCube>, IInteractable
         else
         {
             DialogWindow.Instance.AdvanceDialogue();
+            Debug.Log("Advancing dialogue!");
         }
     }
 
