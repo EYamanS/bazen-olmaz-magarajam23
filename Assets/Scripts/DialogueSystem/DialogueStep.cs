@@ -11,6 +11,7 @@ public abstract class DialogueStep : MonoBehaviour
     private float typeSpeed = 15f;
 
     [SerializeField] GameObject[] RevealOnAnimationComplete;
+    [SerializeField] GameObject[] hideOnAnimationComplete;
 
     public bool writingComplete = false;
 
@@ -47,6 +48,15 @@ public abstract class DialogueStep : MonoBehaviour
                                 RevealOnAnimationComplete[i].SetActive(true);
                             }
                         }
+
+                        if (hideOnAnimationComplete != null && hideOnAnimationComplete.Length > 0)
+                        {
+                            for (int i = 0; i < hideOnAnimationComplete.Length; i++)
+                            {
+                                hideOnAnimationComplete[i].SetActive(false);
+                            }
+                        }
+
                         writingComplete = true;
                     });
         }

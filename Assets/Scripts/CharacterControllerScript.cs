@@ -80,8 +80,27 @@ public class CharacterController : MonoBehaviour
        {
             // notify you can interact with it or not
             contactingInteractable = interactable;
-            interactionObjectRenderer.enabled = true;
+            if (interactable is Door)
+            {
+                var doorr = interactable as Door;
+                if (doorr.locked)
+                {
+                    interactionObjectRenderer.enabled = false;
+                }
+                else
+                {
+                    interactionObjectRenderer.enabled = true;
+                }
+            }
+            else
+            {
+                interactionObjectRenderer.enabled = true;
+            }
        }
+       else if (collision.gameObject.TryGetComponent<FinishTrigger>(out var finish))
+        {
+            finish.FinishSection();
+        }
     }
 
     private void OnTriggerExit2D(Collider2D collision)
@@ -246,6 +265,7 @@ public class CharacterController : MonoBehaviour
     {
         if (Input.GetKeyDown(KeyCode.E))
         {
+            Debug.Log("Interacting -> " + contactingInteractable);
             if (contactingInteractable != null)
             {
                 contactingInteractable.interact();

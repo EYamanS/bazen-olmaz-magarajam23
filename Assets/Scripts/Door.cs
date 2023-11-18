@@ -48,7 +48,7 @@ public class Door : MonoBehaviour, IInteractable
         {
             animator.Play("Close");
             isOpen = false;
-            doorAudioSource.clip = doorOpenSound;
+            doorAudioSource.clip = doorCloseSound;
             doorAudioSource.Play();
             OnDoorClose?.Invoke();
         }
