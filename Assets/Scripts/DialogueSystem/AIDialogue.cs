@@ -127,7 +127,7 @@ public class AIDialogue : MonoBehaviour
         PlayerPrefs.SetString("wife", "dead");
 
         yield return new WaitForSeconds(1.5f);
-        SceneTransitor.Instance.GoToNextScene();
+        //SceneTransitor.Instance.GoToNextScene();
 
         SceneManager.LoadScene(0, LoadSceneMode.Single);
     }
@@ -136,7 +136,7 @@ public class AIDialogue : MonoBehaviour
         PlayerPrefs.SetString("wife", "alive");
 
         yield return new WaitForSeconds(1.5f);
-        SceneTransitor.Instance.GoToNextScene();
+        //SceneTransitor.Instance.GoToNextScene();
 
         SceneManager.LoadScene(0, LoadSceneMode.Single);
     }
