@@ -27,7 +27,7 @@ public class CharacterController : SingletonComponent<CharacterController>
 
     [SerializeField] float movementSpeed = 15f;
     [SerializeField] float airStrafeSpeed = 8f;
-    [SerializeField] float jumpSpeed = 50f;
+    public float jumpSpeed = 50f;
 
     // Throwing References
     [SerializeField] GameObject _mysteryObjectPrefab;
@@ -70,7 +70,7 @@ public class CharacterController : SingletonComponent<CharacterController>
 
     private void OnCollisionStay2D(Collision2D collision)
     {
-        if (collision.gameObject.CompareTag("ground"))
+        if (collision.gameObject.CompareTag("ground") && collision.GetContact(0).point.y < transform.position.y)
         {
             isGrounded = true;
         }

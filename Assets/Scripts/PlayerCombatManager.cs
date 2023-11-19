@@ -10,6 +10,8 @@ public class PlayerCombatManager : SingletonComponent<PlayerCombatManager>
     [SerializeField] BoxCollider2D playerMovementCollider;
     [SerializeField] LayerMask hittableLayerMask;
 
+    [SerializeField] AudioClip shootClip;
+
     public Action onPlayerDeath;
 
     [Space(10)]
@@ -22,17 +24,18 @@ public class PlayerCombatManager : SingletonComponent<PlayerCombatManager>
     private bool attackReady = false;
 
 
-    private bool isNearCover = false;
-    private Cover nearCover;
-    private Vector3 coverStartPos;
+    public bool isNearCover = false;
+    public Cover nearCover;
+    public Vector3 coverStartPos;
     private float prevGravityScale;
 
-    private bool isCovering = false;
+    public bool isCovering = false;
 
     private CharacterController _characterController;
     private Rigidbody2D _rigidbody;
     private Animator playerAnimator;
     private PlayerCombatManager _playerCombatManager;
+    private AudioSource audioSource;
 
     protected override void Awake()
     {
@@ -40,6 +43,7 @@ public class PlayerCombatManager : SingletonComponent<PlayerCombatManager>
         _characterController = GetComponent<CharacterController>();
         _rigidbody = GetComponent<Rigidbody2D>();
         playerAnimator = GetComponent<Animator>();
+        audioSource = GetComponent<AudioSource>();
     }
 
     private void OnTriggerEnter2D(Collider2D collision)
@@ -74,12 +78,6 @@ public class PlayerCombatManager : SingletonComponent<PlayerCombatManager>
                 attackReady = false;
                 remainingAttackDelay = attackDelay;
             }
-            else if (Input.GetKeyDown(KeyCode.R))
-            {
-                Reload();
-                attackReady = false;
-                remainingAttackDelay = reloadDelay;
-            }
         }
         else
         {
@@ -95,18 +93,28 @@ public class PlayerCombatManager : SingletonComponent<PlayerCombatManager>
     {
         bulletParticleSystem.Play();
         playerAnimator.SetTrigger("shoot");
+
+        audioSource.clip = shootClip;
+        audioSource.Play();
+
         RaycastHit2D hit = Physics2D.Raycast(bulletParticleSystem.transform.position, transform.right, 99, hittableLayerMask);
 
-        if (hit.collider != null)
+        if (hit.collider != null && hit.collider.TryGetComponent<ArmedEnemy>(out var armedEnemy))
         {
-            Debug.Log("hit " + hit.collider.gameObject.name);
-            hit.collider.gameObject.SetActive(false);
+            if (!armedEnemy.covered)
+            {
+                Debug.Log("hit " + hit.collider.gameObject.name);
+                StartCoroutine(EnemyDie(armedEnemy));
+            }
         }
     }
 
-    private void Reload()
+    private IEnumerator EnemyDie(ArmedEnemy enemy)
     {
-
+        enemy.GetComponent<ArmedEnemy>().enabled = false;
+        enemy.GetComponent<Animator>().SetTrigger("die");
+        enemy.GetComponent<Animator>().SetBool("cover",false);
+        yield return new WaitForSeconds(.2f);
     }
 
     private void Update()
@@ -155,6 +163,7 @@ public class PlayerCombatManager : SingletonComponent<PlayerCombatManager>
         _rigidbody.gravityScale = 0;
         playerAnimator.SetBool("doCover", true);
 
+        isCovering = true;
         // PLAY COVER ANIMATION
         // ..................
 
@@ -168,7 +177,6 @@ public class PlayerCombatManager : SingletonComponent<PlayerCombatManager>
         }
         _rigidbody.velocity = Vector3.zero;
 
-        isCovering = true;
         
     }
 

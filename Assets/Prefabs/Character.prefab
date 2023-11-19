@@ -243,9 +243,11 @@ MonoBehaviour:
   hittableLayerMask:
     serializedVersion: 2
     m_Bits: 256
+  shootClip: {fileID: 8300000, guid: c0b17b43b022b487087c65eb79d22984, type: 3}
   bulletParticleSystem: {fileID: 3310214674980159467}
   attackDelay: 0.3
   reloadDelay: 1
+  isCovering: 0
 --- !u!114 &2203507151782566406
 MonoBehaviour:
   m_ObjectHideFlags: 0

@@ -14,10 +14,8 @@ public class SceneTransitor : SingletonComponent<SceneTransitor>
     [SerializeField] private List<Transform> sceneRoots = new List<Transform>();
     private int atScene = 1;
 
-    protected override void Awake()
+    public void StartGame()
     {
-        base.Awake();
-        //StartCoroutine(StartSequence());
         StartCoroutine(StartSequence());
     }
 

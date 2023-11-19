@@ -17,6 +17,8 @@ public class WifeSceneRoot : SceneRoot
         vCamera.Follow = player;
         PlayerCombatManager.Instance.enabled = true;
         PlayerCombatManager.Instance.onPlayerDeath += ProcessPlayerDeath;
+        CharacterController.Instance.canMove = true;
+        CharacterController.Instance.jumpSpeed = 16;
     }
 
     private void ProcessPlayerDeath()
@@ -25,6 +27,7 @@ public class WifeSceneRoot : SceneRoot
         for (int i = 0; i < enemies.Length; i++)
         {
             enemies[i].gameObject.SetActive(true);
+            enemies[i].blockCollider.gameObject.SetActive(true);
         }
     }
 }

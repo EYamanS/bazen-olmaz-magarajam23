@@ -27,7 +27,14 @@ public class AIDialogue : MonoBehaviour
     private void OnEnable()
     {
         aiToTalkTo.onRecieveMessage += OnRecieveMessage;
-        ProceedDialogue("Hey Kid! What are you doing here??");
+        if (transform.parent.name.Contains("cocuk"))
+        {
+            ProceedDialogue("Hey Kid! What are you doing here??");
+        }
+        else
+        {
+            ProceedDialogue("Hey! GET AWAY FROM HER! WHAT DO YOU WANT?");
+        }
     }
 
 
@@ -80,6 +87,14 @@ public class AIDialogue : MonoBehaviour
 
                     StartCoroutine(KidFallSequence());
                 }
+                else if (obj.Contains("[NOTKILL]"))
+                {
+                    StartCoroutine(WifeAliveSequence());
+                }
+                else if (obj.Contains("[KILL]"))
+                {
+                    StartCoroutine(WifeDieSequence());
+                }
                 else
                 {
                     inputToGetMessage.gameObject.SetActive(true);
@@ -95,19 +110,34 @@ public class AIDialogue : MonoBehaviour
 
     private IEnumerator SaveKidSequence()
     {
-        textToChange.transform.parent.gameObject.SetActive(false);
-
+        PlayerPrefs.SetString("kid", "alive");
         yield return new WaitForSeconds(1.5f);
-
         SceneTransitor.Instance.GoToNextScene();
     }
 
     private IEnumerator KidFallSequence()
     {
-        textToChange.transform.parent.gameObject.SetActive(false);
+        PlayerPrefs.SetString("kid", "dead");
+        yield return new WaitForSeconds(1.5f);
+        SceneTransitor.Instance.GoToNextScene();
+    }
+
+    private IEnumerator WifeDieSequence()
+    {
+        PlayerPrefs.SetString("wife", "dead");
 
         yield return new WaitForSeconds(1.5f);
-
         SceneTransitor.Instance.GoToNextScene();
+
+        SceneManager.LoadScene(0, LoadSceneMode.Single);
+    }
+    private IEnumerator WifeAliveSequence()
+    {
+        PlayerPrefs.SetString("wife", "alive");
+
+        yield return new WaitForSeconds(1.5f);
+        SceneTransitor.Instance.GoToNextScene();
+
+        SceneManager.LoadScene(0, LoadSceneMode.Single);
     }
 }
