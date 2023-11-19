@@ -7,6 +7,8 @@ public class CocukIntihar : MonoBehaviour
     private bool firstTime = true;
 
     [SerializeField] GameObject[] objectsToActivate;
+    [SerializeField] GameObject[] objectsToDeactivate;
+
 
     private void OnTriggerEnter2D(Collider2D collision)
     {
@@ -20,6 +22,10 @@ public class CocukIntihar : MonoBehaviour
             for (int i = 0; i < objectsToActivate.Length; i++)
             {
                 objectsToActivate[i].SetActive(true);
+            }
+            for (int i = 0; i < objectsToDeactivate.Length; i++)
+            {
+                objectsToDeactivate[i].SetActive(false);
             }
         }
     }
