@@ -36,10 +36,11 @@ public class ParkourTrigger : MonoBehaviour
 
     private void TeachAction()
     {
-        var robot = FindObjectOfType<MysteryCube>();
+        var robot = FindObjectOfType<MysteryCube>(true);
         var robotComponent = robot.GetComponent<MysteryCube>();
 
-        robotComponent.doMove = false;
+        robotComponent.moveTarget = parkourRespawnPoint.position;
+
         CharacterController.Instance.canMove = false;
         robot.transform.DOMove(FindObjectOfType<PlayerCombatManager>().transform.position, 1f).OnComplete(() =>
         {
@@ -48,11 +49,11 @@ public class ParkourTrigger : MonoBehaviour
         });
     }
 
-    private void OnCollisionEnter2D(Collision2D collision)
+    private void OnTriggerEnter2D(Collider2D collision)
     {
         if (collision.gameObject.TryGetComponent<CharacterController>(out var ctrl))
         {
-
+            ctrl.transform.position = parkourRespawnPoint.position;
         }
     }
 }

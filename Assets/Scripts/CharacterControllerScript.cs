@@ -195,22 +195,6 @@ public class CharacterController : SingletonComponent<CharacterController>
             {
                 if(Input.GetMouseButtonDown(0) && canYeet)
                 {
-                    canYeet = false;
-                    isGrounded = false;
-                    _playerAnimator.SetTrigger("jump");
-//                    _rigidbody.velocity = new Vector2(_rigidbody.velocity.x, 2);
-
-
-                    if (yeetSound) AudioSource.PlayClipAtPoint(yeetSound, transform.position);
-
-                    var calcSpeed = (hook.transform.position - transform.position) * yeetSpeed;
-                    transform.position += Vector3.up * .1f;
-                    _rigidbody.velocity =  (maxYeetVelocity > calcSpeed.magnitude) ? calcSpeed : (maxYeetVelocity * calcSpeed.normalized);
-
-                    
-
-                    hook.GetComponent<Rigidbody2D>().isKinematic = true;
-                    hook.GetComponent<Collider2D>().enabled = false;
                     StartCoroutine(HookGoToPlayer());
                 }
             }
@@ -234,6 +218,8 @@ public class CharacterController : SingletonComponent<CharacterController>
 
     private void Throw()
     {
+        MysteryCube.Instance.gameObject.SetActive(false);
+
         hook = Instantiate(_mysteryObjectPrefab, transform.position, Quaternion.identity);
         Rigidbody2D hookrb =  hook.GetComponent<Rigidbody2D>();
         Vector3 aimDirection = (Camera.main.ScreenToWorldPoint(Input.mousePosition) - new Vector3(_rigidbody.position.x, _rigidbody.position.y, 0)).normalized;
@@ -244,6 +230,23 @@ public class CharacterController : SingletonComponent<CharacterController>
 
     private IEnumerator HookGoToPlayer()
     {
+        hook.GetComponent<Animator>().SetTrigger("pull");
+        yield return new WaitForSeconds(.4f);
+        canYeet = false;
+        isGrounded = false;
+        _playerAnimator.SetTrigger("jump");
+        //                    _rigidbody.velocity = new Vector2(_rigidbody.velocity.x, 2);
+        if (yeetSound) AudioSource.PlayClipAtPoint(yeetSound, transform.position);
+
+        var calcSpeed = (hook.transform.position - transform.position) * yeetSpeed;
+        transform.position += Vector3.up * .1f;
+        _rigidbody.velocity = (maxYeetVelocity > calcSpeed.magnitude) ? calcSpeed : (maxYeetVelocity * calcSpeed.normalized);
+
+
+
+        hook.GetComponent<Rigidbody2D>().isKinematic = true;
+        hook.GetComponent<Collider2D>().enabled = false;
+
         var hookRb = hook.GetComponent<Rigidbody2D>();
         do
         {
@@ -254,6 +257,9 @@ public class CharacterController : SingletonComponent<CharacterController>
 
         holdingMysteryObject = true;
         canThrow = true;
+
+        MysteryCube.Instance.transform.position = transform.position;
+        MysteryCube.Instance.gameObject.SetActive(true);
 
         Destroy(hook.gameObject);
     }

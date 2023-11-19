@@ -4,7 +4,7 @@ using UnityEngine;
 
 public class MysteryCube : SingletonComponent<MysteryCube>, IInteractable
 {
-    private Vector3 moveTarget;
+    public Vector3 moveTarget;
     private bool hasTarget = true;
     public bool doMove = false;
 

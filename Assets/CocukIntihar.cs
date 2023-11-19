@@ -4,11 +4,11 @@ using UnityEngine;
 
 public class CocukIntihar : MonoBehaviour
 {
-    private bool firstTime = false;
+    private bool firstTime = true;
 
     [SerializeField] GameObject[] objectsToActivate;
 
-    private void OnCollisionEnter2D(Collision2D collision)
+    private void OnTriggerEnter2D(Collider2D collision)
     {
         if (!firstTime) return;
 
