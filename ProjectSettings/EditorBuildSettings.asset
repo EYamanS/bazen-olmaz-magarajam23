@@ -14,4 +14,7 @@ EditorBuildSettings:
   - enabled: 1
     path: Assets/Scenes/2-Cocuk.unity
     guid: 58d85957253317b40aa7e5ba6d7f24ba
+  - enabled: 1
+    path: Assets/Scenes/3-Wife.unity
+    guid: 4e283013939ab41cf909ca77272955f7
   m_configObjects: {}

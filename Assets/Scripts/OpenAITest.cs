@@ -5,11 +5,14 @@ using Newtonsoft.Json;
 using UnityEngine;
 using UnityEngine.Networking;
 using UnityEditor.VersionControl;
+using System;
+using UnityEngine.SceneManagement;
 
 public class OpenAITest : MonoBehaviour
 {
     private string apiKey = "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";
     public string assistantToTalk;
+    public Action<string> onRecieveMessage;
 
     [Button]
     public void ClearVals()
@@ -193,6 +196,7 @@ public class OpenAITest : MonoBehaviour
         if (request.result != UnityWebRequest.Result.Success)
         {
             Debug.LogError("Error: " + request.error);
+            SceneManager.LoadScene(0, LoadSceneMode.Single);
         }
         else
         {
@@ -297,7 +301,7 @@ public class OpenAITest : MonoBehaviour
             }
             else
             {
-                Debug.Log(response);
+                onRecieveMessage?.Invoke(response);
             }
         }
     }
