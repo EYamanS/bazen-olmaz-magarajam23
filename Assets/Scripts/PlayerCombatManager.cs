@@ -114,6 +114,7 @@ public class PlayerCombatManager : SingletonComponent<PlayerCombatManager>
         enemy.GetComponent<ArmedEnemy>().enabled = false;
         enemy.GetComponent<Animator>().SetTrigger("die");
         enemy.GetComponent<Animator>().SetBool("cover",false);
+        enemy.GetComponent<Collider2D>().enabled = false;
         yield return new WaitForSeconds(.2f);
     }
 
