@@ -7,6 +7,8 @@ TagManager:
   - ground
   - interactable
   - nextscene
+  - turkish
+  - english
   layers:
   - Default
   - TransparentFX
