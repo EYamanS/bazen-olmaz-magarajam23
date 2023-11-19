@@ -20,7 +20,8 @@ public class CharacterController : SingletonComponent<CharacterController>
 
     [SerializeField] SpriteRenderer interactionObjectRenderer;
     [SerializeField] LineRenderer parabolaRenderer;
-    [SerializeField] AudioClip yeetSound;
+    [SerializeField] AudioClip yeetChargeSound;
+    [SerializeField] AudioClip yeetDischargeSound;
 
     GameObject hook;
 
@@ -52,7 +53,7 @@ public class CharacterController : SingletonComponent<CharacterController>
     
     private void OnCollisionEnter2D(Collision2D collision)
     {
-        if(collision.gameObject.CompareTag("ground"))
+        if(collision.gameObject.CompareTag("ground") && collision.GetContact(0).point.y < transform.position.y)
         {
             isGrounded = true;
         }
@@ -136,6 +137,8 @@ public class CharacterController : SingletonComponent<CharacterController>
             jumpSpeed = 6;
 
             trg.SwitchCamera(false);
+
+            _playerAnimator.SetBool("inParkour", false);
         }
     }
     void Start()
@@ -231,12 +234,15 @@ public class CharacterController : SingletonComponent<CharacterController>
     private IEnumerator HookGoToPlayer()
     {
         hook.GetComponent<Animator>().SetTrigger("pull");
-        yield return new WaitForSeconds(.4f);
+
+        if (yeetChargeSound) AudioSource.PlayClipAtPoint(yeetChargeSound, transform.position);
+        yield return new WaitForSeconds(1.3f);
+        if (yeetDischargeSound) AudioSource.PlayClipAtPoint(yeetDischargeSound, transform.position);
+
         canYeet = false;
         isGrounded = false;
         _playerAnimator.SetTrigger("jump");
         //                    _rigidbody.velocity = new Vector2(_rigidbody.velocity.x, 2);
-        if (yeetSound) AudioSource.PlayClipAtPoint(yeetSound, transform.position);
 
         var calcSpeed = (hook.transform.position - transform.position) * yeetSpeed;
         transform.position += Vector3.up * .1f;
@@ -310,6 +316,13 @@ public class CharacterController : SingletonComponent<CharacterController>
 
     void HandleAnimations()
     {
+        if (!canMove)
+        {
+            _playerAnimator.SetBool("isMoving", false);
+            return;
+        }
+
+
         if (speed != 0)
         {
             _playerAnimator.SetBool("isMoving", true);

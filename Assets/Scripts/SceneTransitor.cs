@@ -1,16 +1,18 @@
 using System.Collections;
 using System.Collections.Generic;
 using System.Threading.Tasks;
+using Sirenix.OdinInspector;
 using UnityEngine;
 using UnityEngine.SceneManagement;
 
 
 public class SceneTransitor : SingletonComponent<SceneTransitor>
 {
-    private int nextSceneIndex = 1;
     Transform player;
 
-    private List<Transform> sceneRoots = new List<Transform>();
+    [SerializeField] private int nextSceneIndex = 0;
+    [SerializeField] private List<Transform> sceneRoots = new List<Transform>();
+    private int atScene = 1;
 
     protected override void Awake()
     {
@@ -18,6 +20,7 @@ public class SceneTransitor : SingletonComponent<SceneTransitor>
         //StartCoroutine(StartSequence());
         StartCoroutine(StartSequence());
     }
+
 
     private IEnumerator StartSequence()
     {
@@ -28,7 +31,8 @@ public class SceneTransitor : SingletonComponent<SceneTransitor>
             if (i == 0) continue;
 
             var sceneRootObject = SceneManager.GetSceneAt(i).GetRootGameObjects()[0];
-            sceneRoots.Add(sceneRootObject.transform);
+
+                sceneRoots.Add(sceneRootObject.transform);
 
             if (i != 0 && i != 1)
                 sceneRootObject.SetActive(false);
@@ -50,15 +54,24 @@ public class SceneTransitor : SingletonComponent<SceneTransitor>
         }
     }
 
+    [Button]
     public void GoToNextScene()
     {
+        Debug.Log(nextSceneIndex);
+        Debug.Log(sceneRoots[nextSceneIndex - 1], sceneRoots[nextSceneIndex - 1].gameObject);
+
         sceneRoots[nextSceneIndex - 1].gameObject.SetActive(false);
-        SceneManager.MoveGameObjectToScene(player.gameObject, SceneManager.GetSceneAt(nextSceneIndex+1));
+
+        var nextScene = SceneManager.GetSceneAt(atScene + 1);
+        Debug.Log(nextScene.name);
+        SceneManager.MoveGameObjectToScene(player.gameObject, nextScene);
         sceneRoots[nextSceneIndex].gameObject.SetActive(true);
 
-        SceneManager.UnloadSceneAsync(nextSceneIndex);
+        //SceneManager.UnloadSceneAsync(nextSceneIndex);
+        sceneRoots.RemoveAt(nextSceneIndex - 1);
+        //nextSceneIndex++;
 
-        nextSceneIndex++;
+        atScene++;
     }
 }
 

@@ -1,3 +1,4 @@
+using System;
 using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
@@ -8,6 +9,8 @@ public class PlayerCombatManager : SingletonComponent<PlayerCombatManager>
     [SerializeField] float coverDistanceSensivitiy = .5f;
     [SerializeField] BoxCollider2D playerMovementCollider;
     [SerializeField] LayerMask hittableLayerMask;
+
+    public Action onPlayerDeath;
 
     [Space(10)]
     [SerializeField] ParticleSystem bulletParticleSystem;
@@ -28,12 +31,15 @@ public class PlayerCombatManager : SingletonComponent<PlayerCombatManager>
 
     private CharacterController _characterController;
     private Rigidbody2D _rigidbody;
+    private Animator playerAnimator;
+    private PlayerCombatManager _playerCombatManager;
 
     protected override void Awake()
     {
         base.Awake();
         _characterController = GetComponent<CharacterController>();
         _rigidbody = GetComponent<Rigidbody2D>();
+        playerAnimator = GetComponent<Animator>();
     }
 
     private void OnTriggerEnter2D(Collider2D collision)
@@ -58,6 +64,8 @@ public class PlayerCombatManager : SingletonComponent<PlayerCombatManager>
 
     private void HandleAttack()
     {
+        if (isCovering) return;
+
         if (attackReady)
         {
             if (Input.GetMouseButtonDown(0))
@@ -86,11 +94,13 @@ public class PlayerCombatManager : SingletonComponent<PlayerCombatManager>
     private void Attack()
     {
         bulletParticleSystem.Play();
-        RaycastHit2D hit = Physics2D.Raycast(bulletParticleSystem.transform.position, bulletParticleSystem.transform.forward, 99, hittableLayerMask);
+        playerAnimator.SetTrigger("shoot");
+        RaycastHit2D hit = Physics2D.Raycast(bulletParticleSystem.transform.position, transform.right, 99, hittableLayerMask);
 
         if (hit.collider != null)
         {
             Debug.Log("hit " + hit.collider.gameObject.name);
+            hit.collider.gameObject.SetActive(false);
         }
     }
 
@@ -143,6 +153,7 @@ public class PlayerCombatManager : SingletonComponent<PlayerCombatManager>
         _characterController.enabled = false;
         prevGravityScale = _rigidbody.gravityScale;
         _rigidbody.gravityScale = 0;
+        playerAnimator.SetBool("doCover", true);
 
         // PLAY COVER ANIMATION
         // ..................
@@ -158,10 +169,13 @@ public class PlayerCombatManager : SingletonComponent<PlayerCombatManager>
         _rigidbody.velocity = Vector3.zero;
 
         isCovering = true;
+        
     }
 
     private IEnumerator GetOutFromCover()
     {
+        playerAnimator.SetBool("doCover", false);
+
         while ((transform.position - coverStartPos).magnitude > coverDistanceSensivitiy)
         {
             _rigidbody.velocity = (coverStartPos - transform.position).normalized * coverSpeed;

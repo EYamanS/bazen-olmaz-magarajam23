@@ -9,7 +9,7 @@ public class ParkourTrigger : MonoBehaviour
     [SerializeField] CinemachineVirtualCamera defaultCamera;
     [SerializeField] CinemachineVirtualCamera parkourCamera;
 
-    [SerializeField] Transform parkourRespawnPoint;
+    public Transform parkourRespawnPoint;
 
     private bool firstTime = true;
 
@@ -17,6 +17,7 @@ public class ParkourTrigger : MonoBehaviour
     {
         if (parkour)
         {
+            CharacterController.Instance.gameObject.GetComponent<Animator>().SetBool("inParkour", true);
             defaultCamera.Priority = 1;
             parkourCamera.Priority = 2;
 
@@ -49,6 +50,7 @@ public class ParkourTrigger : MonoBehaviour
         });
     }
 
+    /*
     private void OnTriggerEnter2D(Collider2D collision)
     {
         if (collision.gameObject.TryGetComponent<CharacterController>(out var ctrl))
@@ -56,4 +58,5 @@ public class ParkourTrigger : MonoBehaviour
             ctrl.transform.position = parkourRespawnPoint.position;
         }
     }
+    */
 }

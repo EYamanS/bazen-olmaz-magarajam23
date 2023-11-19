@@ -71,14 +71,12 @@ public class AIDialogue : MonoBehaviour
 
                 if (obj.Contains("[CANCEL]"))
                 {
-                    textToChange.transform.parent.gameObject.SetActive(false);
 
                     StartCoroutine(SaveKidSequence());
 
                 }
                 else if (obj.Contains("[FALL]"))
                 {
-                    textToChange.transform.parent.gameObject.SetActive(false);
 
                     StartCoroutine(KidFallSequence());
                 }
@@ -97,6 +95,8 @@ public class AIDialogue : MonoBehaviour
 
     private IEnumerator SaveKidSequence()
     {
+        textToChange.transform.parent.gameObject.SetActive(false);
+
         yield return new WaitForSeconds(1.5f);
 
         SceneTransitor.Instance.GoToNextScene();
@@ -104,6 +104,8 @@ public class AIDialogue : MonoBehaviour
 
     private IEnumerator KidFallSequence()
     {
+        textToChange.transform.parent.gameObject.SetActive(false);
+
         yield return new WaitForSeconds(1.5f);
 
         SceneTransitor.Instance.GoToNextScene();

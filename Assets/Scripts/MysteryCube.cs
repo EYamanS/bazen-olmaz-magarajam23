@@ -58,7 +58,7 @@ public class MysteryCube : SingletonComponent<MysteryCube>, IInteractable
 
         if (hasTarget)
         {
-            _rb.velocity = (moveTarget - transform.position).normalized * moveSpeed;
+            _rb.velocity = (moveTarget - transform.position).normalized * moveSpeed * (moveTarget - transform.position).magnitude / 5f;
 
             if ((moveTarget - transform.position).magnitude < .05f)
             {

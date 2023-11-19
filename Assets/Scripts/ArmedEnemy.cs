@@ -1,164 +1,114 @@
 using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
+using DG.Tweening;
 
 public class ArmedEnemy : MonoBehaviour
 {
-    PlayerCombatManager _playerCombatManager;
     Rigidbody2D _rigidbody;
-    BoxCollider2D enemyCollider;
+    Collider2D enemyCollider;
+    Animator animator;
 
-    private bool noticedPlayer = false;
-    private bool attackReady = false;
-    private bool isCovering = false;
-    private Vector3 coverStartPos;
-    private float shootDelayCountdown = 0;
-    private float coverLeftCountdown = 0f;
-    private float decisionCountdown = 0f;
+    Vector3 coverStartPos;
 
-    [Header("Combat Settings")]
-    [SerializeField] float decisionDelay = 1f;
-    [SerializeField] float minShootDelay;
-    [SerializeField] float maxShootDelay;
-    [SerializeField] float shootChance = .8f;
-    [SerializeField] float noticeRange = 20f;
+    [SerializeField] LayerMask playerLayerMask;
+    [SerializeField] Cover enemyCover;
+    [SerializeField] float shootChance = 0.8f;
     [SerializeField] ParticleSystem bulletParticleSystem;
 
-    [Space(15)]
-    [Header("Cover Settings")]
-    [SerializeField] Cover enemyCover;
-    [SerializeField] float coverDistanceSensivitiy = .2f;
-    [SerializeField] float coverSpeed = 10f;
-
-    [SerializeField] float minCoverTime = 2f;
-    [SerializeField] float maxCoverTime = 4f;
+    public bool doingAction = false;
+    bool covered = false;
 
     private void Awake()
     {
-        _playerCombatManager = FindObjectOfType<PlayerCombatManager>();
+        enemyCollider = GetComponent<Collider2D>();
         _rigidbody = GetComponent<Rigidbody2D>();
-        enemyCollider = GetComponent<BoxCollider2D>();
+        animator = GetComponent<Animator>();
     }
+
+
+    public bool DoCover()
+    {
+        float seed = Random.Range(0f, 1f);
+
+        if (seed < shootChance)
+        {
+            return false;
+        }
+        else
+        {
+            return true;
+        }
+    }
+
 
     private void Update()
     {
-        if (shootDelayCountdown >= 0) shootDelayCountdown -= Time.deltaTime;
-        else { attackReady = true; }
-
-        if (coverLeftCountdown >= 0) coverLeftCountdown -= Time.deltaTime;
-
-        if (decisionCountdown > 0) { decisionCountdown -= Time.deltaTime; return; }
-        else
+        if (!doingAction)
         {
-            decisionCountdown = decisionDelay;
-        }
+            doingAction = true;
+            bool doCover = DoCover();
 
-
-        
-        if (!noticedPlayer)
-        {
-            if ((_playerCombatManager.transform.position - transform.position).magnitude < noticeRange)
-            {
-                noticedPlayer = true;
-            }
-        }
-        else
-        {
-            if (coverLeftCountdown > 0) return;
-
-            float decidedActionVal = Random.Range(0f, 1f);
-            if (decidedActionVal < shootChance)
-            {
-                // decided action is shoot
-                if (attackReady)
-                {
-                    if (isCovering)
-                    {
-                        attackReady = false;
-                        shootDelayCountdown = Random.Range(minShootDelay, maxShootDelay);
-                        StartCoroutine(GetOutFromCover(attackAfter: true));
-                    }
-                    else
-                    {
-                        attackReady = false;
-                        shootDelayCountdown = Random.Range(minShootDelay, maxShootDelay);
-                        StartCoroutine(Attack());
-                    }
-                }
+           if (doCover)
+           {
+                if (!covered)
+                    CoverRoutine();
                 else
                 {
-                    if (isCovering)
-                        StartCoroutine(GetOutFromCover(attackAfter: false));
+                    ShootRoutine();
                 }
-
-            }
-            else
-            {
-                // decided action is cover.
-                if (isCovering)
-                {
-                    // just stay lol.
-                }
+           }
+           else
+           {
+                if (covered)
+                    ShootRoutine();
                 else
                 {
-                    isCovering = true;
-                    coverLeftCountdown = Random.Range(minCoverTime, maxCoverTime);
-                    StartCoroutine(GoToCover());
+                    StartCoroutine(Shoot());
                 }
-            }
+           }
         }
     }
 
-
-    private IEnumerator Attack()
+    private IEnumerator Shoot()
     {
-        yield return new WaitForSeconds(Random.Range(.2f,.4f));
+        Debug.Log("ates ediyomm");
+
+        animator.SetTrigger("shoot");
+        yield return new WaitForSeconds(.2f);
         bulletParticleSystem.Play();
-        RaycastHit2D hit = Physics2D.Raycast(bulletParticleSystem.transform.position, bulletParticleSystem.transform.forward, 99);
+
+        RaycastHit2D hit = Physics2D.Raycast(bulletParticleSystem.transform.position, transform.forward, 20, playerLayerMask);
 
         if (hit.collider != null)
         {
-            Debug.Log("enemy hit " + hit.collider.gameObject.name);
+            PlayerCombatManager.Instance.onPlayerDeath?.Invoke();
         }
+
+        yield return new WaitForSeconds(.8f);
+        doingAction = false;
     }
 
-    private IEnumerator GoToCover()
+    private void CoverRoutine()
     {
+        Debug.Log("covera giriyom");
+        animator.SetBool("cover", true);
         coverStartPos = transform.position;
-        Debug.Log("Going to cover");
-        Transform chosenCover = enemyCover.GetNearestCover(transform.position);
-
-        // PLAY COVER ANIMATION
-        // ..................
-        enemyCollider.enabled = false;
-
-        // move it to the cover.
-        while ((transform.position - chosenCover.position).magnitude > coverDistanceSensivitiy)
+        _rigidbody.transform.DOMove(enemyCover.GetNearestCover(transform.position).position, .5f).OnComplete(() =>
         {
-            _rigidbody.velocity = (chosenCover.position - transform.position).normalized * coverSpeed;
-            yield return new WaitForEndOfFrame();
-        }
-
-        _rigidbody.velocity = Vector3.zero;
-
+            doingAction = false;
+            covered = true;
+        });
     }
 
-    private IEnumerator GetOutFromCover(bool attackAfter = false)
+    private void ShootRoutine()
     {
-        while ((transform.position - coverStartPos).magnitude > coverDistanceSensivitiy)
+        Debug.Log("coverdan cikiyom");
+        animator.SetBool("cover", false);
+        _rigidbody.transform.DOMove(coverStartPos, .5f).OnComplete(() =>
         {
-            _rigidbody.velocity = (coverStartPos - transform.position).normalized * coverSpeed;
-            yield return new WaitForEndOfFrame();
-        }
-        _rigidbody.velocity = Vector3.zero;
-
-        isCovering = false;
-        enemyCollider.enabled = true;
-
-
-        if (attackAfter)
-        {
-            yield return Attack();
-        }
+            doingAction = false;
+            covered = false;
+        });
     }
 }
