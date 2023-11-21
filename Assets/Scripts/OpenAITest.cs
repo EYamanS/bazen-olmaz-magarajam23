@@ -9,6 +9,9 @@ using UnityEngine.SceneManagement;
 
 public class OpenAITest : MonoBehaviour
 {
+    // Please don't bother stealing... 
+    // I did not the API key, in case you wanna test it but 
+    // please do not abuse
     private string apiKey = "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";
     public string assistantToTalk;
     public Action<string> onRecieveMessage;
